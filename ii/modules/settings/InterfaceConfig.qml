@@ -878,4 +878,262 @@ ContentPage {
             }
         }
     }
+
+    ContentSection {
+        icon: "desktop_windows"
+        title: Translation.tr("Display & Monitor")
+
+        ConfigSwitch {
+            buttonIcon: "brightness_6"
+            text: Translation.tr("Enable brightness control")
+            checked: Config.options.display?.brightnessControl?.enable ?? false
+            onCheckedChanged: {
+                if (!Config.options.display) Config.options.display = {};
+                if (!Config.options.display.brightnessControl) Config.options.display.brightnessControl = {};
+                Config.options.display.brightnessControl.enable = checked;
+            }
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.display?.brightnessControl?.enable ?? false
+            icon: "brightness_5"
+            text: Translation.tr("Brightness step (%)")
+            value: (Config.options.display?.brightnessControl?.step ?? 10) * 100
+            from: 1
+            to: 50
+            stepSize: 1
+            onValueChanged: {
+                if (!Config.options.display) Config.options.display = {};
+                if (!Config.options.display.brightnessControl) Config.options.display.brightnessControl = {};
+                Config.options.display.brightnessControl.step = value / 100;
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Monitor arrangement")
+
+            ConfigSwitch {
+                buttonIcon: "view_sidebar"
+                text: Translation.tr("Auto-detect monitors")
+                checked: Config.options.display?.autoDetect ?? true
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    Config.options.display.autoDetect = checked;
+                }
+            }
+
+            ConfigSwitch {
+                buttonIcon: "settings_overscan"
+                text: Translation.tr("Mirror displays")
+                checked: Config.options.display?.mirror ?? false
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    Config.options.display.mirror = checked;
+                }
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Refresh rate")
+
+            ConfigSwitch {
+                buttonIcon: "refresh"
+                text: Translation.tr("Force refresh rate")
+                checked: Config.options.display?.forceRefreshRate?.enable ?? false
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    if (!Config.options.display.forceRefreshRate) Config.options.display.forceRefreshRate = {};
+                    Config.options.display.forceRefreshRate.enable = checked;
+                }
+            }
+
+            ConfigSpinBox {
+                enabled: Config.options.display?.forceRefreshRate?.enable ?? false
+                icon: "av_timer"
+                text: Translation.tr("Target refresh rate (Hz)")
+                value: Config.options.display?.forceRefreshRate?.rate ?? 60
+                from: 30
+                to: 240
+                stepSize: 1
+                onValueChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    if (!Config.options.display.forceRefreshRate) Config.options.display.forceRefreshRate = {};
+                    Config.options.display.forceRefreshRate.rate = value;
+                }
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Scaling")
+
+            ConfigSwitch {
+                buttonIcon: "zoom_in"
+                text: Translation.tr("Fractional scaling")
+                checked: Config.options.display?.fractionalScaling ?? false
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    Config.options.display.fractionalScaling = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Enable fractional scaling for crisp display on high-DPI monitors.\nMay require restart.")
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "straighten"
+                text: Translation.tr("Global scale (%)")
+                value: (Config.options.display?.globalScale ?? 1.0) * 100
+                from: 50
+                to: 300
+                stepSize: 5
+                onValueChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    Config.options.display.globalScale = value / 100;
+                }
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Color management")
+
+            ConfigSwitch {
+                buttonIcon: "palette"
+                text: Translation.tr("Night light")
+                checked: Config.options.display?.nightLight?.enable ?? false
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    if (!Config.options.display.nightLight) Config.options.display.nightLight = {};
+                    Config.options.display.nightLight.enable = checked;
+                }
+            }
+
+            ConfigRow {
+                enabled: Config.options.display?.nightLight?.enable ?? false
+                uniform: true
+
+                ConfigSpinBox {
+                    icon: "wb_sunny"
+                    text: Translation.tr("Day temperature (K)")
+                    value: Config.options.display?.nightLight?.dayTemp ?? 6500
+                    from: 1000
+                    to: 10000
+                    stepSize: 100
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.nightLight) Config.options.display.nightLight = {};
+                        Config.options.display.nightLight.dayTemp = value;
+                    }
+                }
+
+                ConfigSpinBox {
+                    icon: "brightness_2"
+                    text: Translation.tr("Night temperature (K)")
+                    value: Config.options.display?.nightLight?.nightTemp ?? 3500
+                    from: 1000
+                    to: 10000
+                    stepSize: 100
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.nightLight) Config.options.display.nightLight = {};
+                        Config.options.display.nightLight.nightTemp = value;
+                    }
+                }
+            }
+
+            ConfigRow {
+                enabled: Config.options.display?.nightLight?.enable ?? false
+                uniform: true
+
+                ConfigSpinBox {
+                    icon: "schedule"
+                    text: Translation.tr("Sunrise hour")
+                    value: Config.options.display?.nightLight?.sunrise ?? 6
+                    from: 0
+                    to: 23
+                    stepSize: 1
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.nightLight) Config.options.display.nightLight = {};
+                        Config.options.display.nightLight.sunrise = value;
+                    }
+                }
+
+                ConfigSpinBox {
+                    icon: "nightlight"
+                    text: Translation.tr("Sunset hour")
+                    value: Config.options.display?.nightLight?.sunset ?? 18
+                    from: 0
+                    to: 23
+                    stepSize: 1
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.nightLight) Config.options.display.nightLight = {};
+                        Config.options.display.nightLight.sunset = value;
+                    }
+                }
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Power management")
+
+            ConfigSwitch {
+                buttonIcon: "power_settings_new"
+                text: Translation.tr("Enable DPMS")
+                checked: Config.options.display?.dpms?.enable ?? true
+                onCheckedChanged: {
+                    if (!Config.options.display) Config.options.display = {};
+                    if (!Config.options.display.dpms) Config.options.display.dpms = {};
+                    Config.options.display.dpms.enable = checked;
+                }
+            }
+
+            ConfigRow {
+                enabled: Config.options.display?.dpms?.enable ?? true
+                uniform: true
+
+                ConfigSpinBox {
+                    icon: "timer_10"
+                    text: Translation.tr("Standby (min)")
+                    value: Config.options.display?.dpms?.standby ?? 10
+                    from: 1
+                    to: 60
+                    stepSize: 1
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.dpms) Config.options.display.dpms = {};
+                        Config.options.display.dpms.standby = value;
+                    }
+                }
+
+                ConfigSpinBox {
+                    icon: "timer_30"
+                    text: Translation.tr("Suspend (min)")
+                    value: Config.options.display?.dpms?.suspend ?? 15
+                    from: 1
+                    to: 120
+                    stepSize: 1
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.dpms) Config.options.display.dpms = {};
+                        Config.options.display.dpms.suspend = value;
+                    }
+                }
+
+                ConfigSpinBox {
+                    icon: "power_off"
+                    text: Translation.tr("Off (min)")
+                    value: Config.options.display?.dpms?.off ?? 30
+                    from: 1
+                    to: 240
+                    stepSize: 5
+                    onValueChanged: {
+                        if (!Config.options.display) Config.options.display = {};
+                        if (!Config.options.display.dpms) Config.options.display.dpms = {};
+                        Config.options.display.dpms.off = value;
+                    }
+                }
+            }
+        }
+    }
 }

@@ -7,17 +7,25 @@ GroupButton {
     id: button
     property string buttonIcon
     property bool activated: false
+    property bool danger: false
+    property int iconSize: Appearance.font.pixelSize.small
     toggled: activated
     baseWidth: height
-    colBackgroundHover: Appearance.colors.colSecondaryContainerHover
-    colBackgroundActive: Appearance.colors.colSecondaryContainerActive
+    colBackgroundHover: danger ? Appearance.colors.colErrorContainer :
+                        activated ? Appearance.colors.colPrimaryContainer :
+                        Appearance.colors.colSecondaryContainerHover
+    colBackgroundActive: danger ? Appearance.colors.colError :
+                         activated ? Appearance.colors.colPrimary :
+                         Appearance.colors.colSecondaryContainerActive
 
     contentItem: MaterialSymbol {
         horizontalAlignment: Text.AlignHCenter
-        iconSize: Appearance.font.pixelSize.larger
+        iconSize: button.iconSize
         text: buttonIcon
-        color: button.activated ? Appearance.m3colors.m3onPrimary :
-            button.enabled ? Appearance.m3colors.m3onSurface :
+        color: button.activated ? (danger ? Appearance.colors.colOnError :
+                                         Appearance.m3colors.m3onPrimary) :
+            button.enabled ? (danger ? Appearance.colors.colError :
+                                     Appearance.m3colors.m3onSurface) :
             Appearance.colors.colOnLayer1Inactive
 
         Behavior on color {

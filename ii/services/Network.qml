@@ -66,7 +66,37 @@ Singleton {
         root.wifiConnectTarget = accessPoint;
         // We use this instead of `nmcli connection up SSID` because this also creates a connection profile
         connectProc.exec(["nmcli", "dev", "wifi", "connect", accessPoint.ssid])
+    }
 
+    function connectToHiddenWifiNetwork(ssid: string, password: string = ""): void {
+        root.wifiConnectTarget = {
+            ssid: ssid,
+            active: false,
+            strength: 0,
+            frequency: 0,
+            bssid: "",
+            security: password.length > 0 ? "WPA2" : "",
+            askingPassword: false
+        };
+
+        if (password.length > 0) {
+            // For hidden networks with password, we need to create the connection with password
+            connectHiddenProc.exec({
+                "environment": {
+                    "SSID": ssid,
+                    "PASSWORD": password
+                },
+                "command": ["bash", "-c", "nmcli dev wifi connect \"$SSID\" password \"$PASSWORD\" hidden yes"]
+            });
+        } else {
+            // For open hidden networks
+            connectHiddenProc.exec({
+                "environment": {
+                    "SSID": ssid
+                },
+                "command": ["bash", "-c", "nmcli dev wifi connect \"$SSID\" hidden yes"]
+            });
+        }
     }
 
     function disconnectWifiNetwork(): void {
@@ -130,6 +160,32 @@ Singleton {
         onExited: { // Re-attempt connection after changing password
             connectProc.running = false
             connectProc.running = true
+        }
+    }
+
+    Process {
+        id: connectHiddenProc
+        environment: ({
+            LANG: "C",
+            LC_ALL: "C"
+        })
+        stdout: SplitParser {
+            onRead: line => {
+                getNetworks.running = true
+            }
+        }
+        stderr: SplitParser {
+            onRead: line => {
+                // Handle password prompt for hidden networks
+                if (line.includes("Secrets were required")) {
+                    // This shouldn't happen for hidden networks as we provide password upfront
+                    console.log("[Network] Hidden network connection failed: password required but not provided")
+                }
+            }
+        }
+        onExited: (exitCode, exitStatus) => {
+            root.wifiConnectTarget = null
+            getNetworks.running = true
         }
     }
 

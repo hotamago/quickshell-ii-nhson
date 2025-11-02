@@ -54,6 +54,47 @@ WindowDialog {
         }
     }
     WindowDialogSeparator {}
+
+    // Hidden network section
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 8
+
+        StyledText {
+            text: Translation.tr("Hidden Network")
+            font.pixelSize: Appearance.font.pixelSize.small
+            font.weight: Font.Medium
+            color: Appearance.colors.colOnSurfaceVariant
+        }
+
+        RowLayout {
+            spacing: 8
+
+            MaterialTextField {
+                id: hiddenNetworkField
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Network name (SSID)")
+                onAccepted: hiddenPasswordField.forceActiveFocus()
+            }
+
+            MaterialTextField {
+                id: hiddenPasswordField
+                Layout.preferredWidth: 120
+                placeholderText: Translation.tr("Password (optional)")
+                echoMode: TextInput.Password
+                inputMethodHints: Qt.ImhSensitiveData
+                onAccepted: connectToHiddenNetwork()
+            }
+
+            DialogButton {
+                buttonText: Translation.tr("Connect")
+                enabled: hiddenNetworkField.text.length > 0
+                onClicked: connectToHiddenNetwork()
+            }
+        }
+    }
+
+    WindowDialogSeparator {}
     WindowDialogButtonRow {
         DialogButton {
             buttonText: Translation.tr("Details")
@@ -71,5 +112,19 @@ WindowDialog {
             buttonText: Translation.tr("Done")
             onClicked: root.dismiss()
         }
+    }
+
+    function connectToHiddenNetwork() {
+        if (hiddenNetworkField.text.length === 0) return;
+
+        const ssid = hiddenNetworkField.text.trim();
+        const password = hiddenPasswordField.text;
+
+        // Use the dedicated hidden network connection function
+        Network.connectToHiddenWifiNetwork(ssid, password);
+
+        // Clear the fields
+        hiddenNetworkField.text = "";
+        hiddenPasswordField.text = "";
     }
 }
