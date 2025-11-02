@@ -50,7 +50,12 @@ Singleton {
         return (key?.length > 0);
     }
     property var postResponseHook
-    property real temperature: Persistent.states?.ai?.temperature ?? 0.5
+    property real temperature: {
+        const savedTemp = Persistent.states?.ai?.temperature;
+        if (savedTemp !== undefined) return savedTemp;
+        const model = models[currentModelId];
+        return model?.defaultTemperature ?? 0.5;
+    }
     property QtObject tokenCount: QtObject {
         property int input: -1
         property int output: -1
@@ -362,7 +367,26 @@ Singleton {
             if (!Config.ready) return;
             (Config?.options.ai?.extraModels ?? []).forEach(model => {
                 const safeModelName = root.safeModelName(model["model"]);
-                root.addModel(safeModelName, model)
+                // Enhanced model configuration with defaults for OpenAI compatibility
+                const enhancedModel = {
+                    "name": model.name || `${model.model} (${model.endpoint || "Custom"})`,
+                    "icon": model.icon || "api",
+                    "description": model.description || Translation.tr("Custom OpenAI-compatible model"),
+                    "endpoint": model.endpoint || "https://api.openai.com/v1/chat/completions",
+                    "model": model.model,
+                    "requires_key": model.requires_key !== false, // Default to true
+                    "key_id": model.key_id || "openai",
+                    "api_format": model.api_format || "openai",
+                    "extraParams": model.extraParams || {},
+                    "defaultTemperature": model.defaultTemperature || 0.7,
+                    "maxTokens": model.maxTokens,
+                    "contextWindow": model.contextWindow,
+                    "pricing": model.pricing,
+                    "homepage": model.homepage,
+                    "key_get_link": model.key_get_link,
+                    "key_get_description": model.key_get_description
+                };
+                root.addModel(safeModelName, enhancedModel)
             });
         }
     }

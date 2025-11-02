@@ -79,22 +79,24 @@ Rectangle {
 
         Rectangle {
             Layout.fillWidth: true
-            implicitWidth: headerRowLayout.implicitWidth + 4 * 2
-            implicitHeight: headerRowLayout.implicitHeight + 4 * 2
+            implicitWidth: headerRowLayout.implicitWidth + 6 * 2
+            implicitHeight: headerRowLayout.implicitHeight + 6 * 2
             color: Appearance.colors.colSecondaryContainer
-            radius: Appearance.rounding.small
-        
+            radius: Appearance.rounding.normal
+            border.color: Appearance.colors.colOutlineVariant
+            border.width: 1
+
             RowLayout { // Header
                 id: headerRowLayout
                 anchors {
                     fill: parent
-                    margins: 4
+                    margins: 6
                 }
-                spacing: 18
+                spacing: 12
 
                 Item { // Name
                     id: nameWrapper
-                    implicitHeight: Math.max(nameRowLayout.implicitHeight + 5 * 2, 30)
+                    implicitHeight: Math.max(nameRowLayout.implicitHeight + 4 * 2, 32)
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
 
@@ -103,9 +105,9 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
-                        spacing: 7
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 8
+                        spacing: 8
 
                         Item {
                             Layout.alignment: Qt.AlignVCenter
@@ -132,9 +134,9 @@ Rectangle {
                                 visible: !modelIcon.visible
                                 iconSize: Appearance.font.pixelSize.larger
                                 color: Appearance.m3colors.m3onSecondaryContainer
-                                text: messageData?.role == 'user' ? 'person' : 
-                                    messageData?.role == 'interface' ? 'settings' : 
-                                    messageData?.role == 'assistant' ? 'neurology' : 
+                                text: messageData?.role == 'user' ? 'person' :
+                                    messageData?.role == 'interface' ? 'settings' :
+                                    messageData?.role == 'assistant' ? 'neurology' :
                                     'computer'
                             }
                         }
@@ -145,10 +147,20 @@ Rectangle {
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                             font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
                             color: Appearance.m3colors.m3onSecondaryContainer
                             text: messageData?.role == 'assistant' ? Ai.models[messageData?.model].name :
                                 (messageData?.role == 'user' && SystemInfo.username) ? SystemInfo.username :
                                 Translation.tr("Interface")
+                        }
+
+                        // Status indicator for assistant messages
+                        MaterialSymbol {
+                            visible: messageData?.role == 'assistant' && messageData?.done
+                            Layout.alignment: Qt.AlignVCenter
+                            iconSize: Appearance.font.pixelSize.small
+                            color: Appearance.colors.colSuccess
+                            text: "check_circle"
                         }
                     }
                 }
@@ -175,11 +187,12 @@ Rectangle {
                 }
 
                 ButtonGroup {
-                    spacing: 5
+                    spacing: 6
 
                     AiMessageControlButton {
                         id: copyButton
-                        buttonIcon: activated ? "inventory" : "content_copy"
+                        buttonIcon: activated ? "check" : "content_copy"
+                        iconSize: activated ? Appearance.font.pixelSize.normal : Appearance.font.pixelSize.small
 
                         onClicked: {
                             Quickshell.clipboardText = root.messageData?.content
@@ -189,22 +202,22 @@ Rectangle {
 
                         Timer {
                             id: copyIconTimer
-                            interval: 1500
+                            interval: 2000
                             repeat: false
                             onTriggered: {
                                 copyButton.activated = false
                             }
                         }
-                        
+
                         StyledToolTip {
-                            text: Translation.tr("Copy")
+                            text: activated ? Translation.tr("Copied!") : Translation.tr("Copy")
                         }
                     }
                     AiMessageControlButton {
                         id: editButton
                         activated: root.editing
                         enabled: root.messageData?.done ?? false
-                        buttonIcon: "edit"
+                        buttonIcon: root.editing ? "save" : "edit"
                         onClicked: {
                             root.editing = !root.editing
                             if (!root.editing) { // Save changes
@@ -212,7 +225,7 @@ Rectangle {
                             }
                         }
                         StyledToolTip {
-                            text: root.editing ? Translation.tr("Save") : Translation.tr("Edit")
+                            text: root.editing ? Translation.tr("Save changes") : Translation.tr("Edit message")
                         }
                     }
                     AiMessageControlButton {
@@ -223,17 +236,18 @@ Rectangle {
                             root.renderMarkdown = !root.renderMarkdown
                         }
                         StyledToolTip {
-                            text: Translation.tr("View Markdown source")
+                            text: root.renderMarkdown ? Translation.tr("Show raw markdown") : Translation.tr("Show rendered text")
                         }
                     }
                     AiMessageControlButton {
                         id: deleteButton
-                        buttonIcon: "close"
+                        buttonIcon: "delete"
+                        danger: true
                         onClicked: {
                             Ai.removeMessage(root.messageIndex)
                         }
                         StyledToolTip {
-                            text: Translation.tr("Delete")
+                            text: Translation.tr("Delete message")
                         }
                     }
                 }

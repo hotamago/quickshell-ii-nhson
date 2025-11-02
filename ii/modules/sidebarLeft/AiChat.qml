@@ -242,22 +242,26 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
         property string icon
         property string statusText
         property string description
+        property bool isActive: true
         hoverEnabled: true
         implicitHeight: statusItemRowLayout.implicitHeight
         implicitWidth: statusItemRowLayout.implicitWidth
 
         RowLayout {
             id: statusItemRowLayout
-            spacing: 0
+            spacing: 4
             MaterialSymbol {
                 text: statusItem.icon
-                iconSize: Appearance.font.pixelSize.huge
-                color: Appearance.colors.colSubtext
+                iconSize: Appearance.font.pixelSize.large
+                color: isActive ? Appearance.m3colors.m3primary :
+                      Appearance.colors.colSubtext
             }
             StyledText {
                 font.pixelSize: Appearance.font.pixelSize.small
+                font.weight: Font.Medium
                 text: statusItem.statusText
-                color: Appearance.colors.colSubtext
+                color: isActive ? Appearance.m3colors.m3primary :
+                      Appearance.colors.colSubtext
                 animateChange: true
             }
         }
@@ -286,14 +290,16 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
 
             StatusItem {
                 icon: Ai.currentModelHasApiKey ? "key" : "key_off"
-                statusText: ""
+                statusText: Ai.currentModelHasApiKey ? "API" : "No Key"
                 description: Ai.currentModelHasApiKey ? Translation.tr("API key is set\nChange with /key YOUR_API_KEY") : Translation.tr("No API key\nSet it with /key YOUR_API_KEY")
+                isActive: Ai.currentModelHasApiKey
             }
             StatusSeparator {}
             StatusItem {
                 icon: "device_thermostat"
                 statusText: Ai.temperature.toFixed(1)
                 description: Translation.tr("Temperature\nChange with /temp VALUE")
+                isActive: true
             }
             StatusSeparator {
                 visible: Ai.tokenCount.total > 0
@@ -305,6 +311,7 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                 description: Translation.tr("Total token count\nInput: %1\nOutput: %2")
                     .arg(Ai.tokenCount.input)
                     .arg(Ai.tokenCount.output)
+                isActive: true
             }
         }
 
@@ -440,16 +447,24 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
 
         Rectangle { // Input area
             id: inputWrapper
-            property real spacing: 5
+            property real spacing: 8
             Layout.fillWidth: true
-            radius: Appearance.rounding.small
+            radius: Appearance.rounding.normal
             color: Appearance.colors.colLayer1
             implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin
-                + commandButtonsRow.implicitHeight + commandButtonsRow.anchors.bottomMargin + spacing, 45)
+                + commandButtonsRow.implicitHeight + commandButtonsRow.anchors.bottomMargin + spacing, 50)
                 + (attachedFileIndicator.implicitHeight + spacing + attachedFileIndicator.anchors.topMargin)
             clip: true
-            border.color: Appearance.colors.colOutlineVariant
-            border.width: 1
+            border.color: messageInputField.activeFocus ? Appearance.m3colors.m3primary :
+                         Appearance.colors.colOutlineVariant
+            border.width: messageInputField.activeFocus ? 2 : 1
+
+            Behavior on border.color {
+                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+            }
+            Behavior on border.width {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            }
 
             Behavior on implicitHeight {
                 animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
@@ -481,9 +496,10 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                     id: messageInputField
                     wrapMode: TextArea.Wrap
                     Layout.fillWidth: true
-                    padding: 10
+                    padding: 12
                     color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
                     placeholderText: Translation.tr('Message the model... "%1" for commands').arg(root.commandPrefix)
+                    font.pixelSize: Appearance.font.pixelSize.normal
 
                     background: null
 

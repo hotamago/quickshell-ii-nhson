@@ -65,7 +65,7 @@ ShellRoot {
         Wallpapers.load()
     }
 
-    LazyLoader { active: enableBar && Config.ready && !Config.options.bar.vertical; component: Bar {} }
+    LazyLoader { active: enableBar && Config.ready && Config.options.bar.vertical !== true; component: Bar {} }
     LazyLoader { active: enableBackground; component: Background {} }
     LazyLoader { active: enableCheatsheet; component: Cheatsheet {} }
     LazyLoader { active: enableCrosshair; component: Crosshair {} }
@@ -82,7 +82,7 @@ ShellRoot {
     LazyLoader { active: enableSessionScreen; component: SessionScreen {} }
     LazyLoader { active: enableSidebarLeft; component: SidebarLeft {} }
     LazyLoader { active: enableSidebarRight; component: SidebarRight {} }
-    LazyLoader { active: enableVerticalBar && Config.ready && Config.options.bar.vertical; component: VerticalBar {} }
+    LazyLoader { active: enableVerticalBar && Config.ready && Config.options.bar.vertical === true; component: VerticalBar {} }
     LazyLoader { active: enableWallpaperSelector; component: WallpaperSelector {} }
 }
 
