@@ -29,12 +29,23 @@ Item {
         // "Shift": "",
     })
 
+    // Placeholder when no keybinds are loaded
+    StyledText {
+        anchors.centerIn: parent
+        visible: !keybinds?.children || keybinds.children.length === 0
+        text: Translation.tr("No keybinds found\n\nMake sure your Hyprland config has properly formatted keybind comments")
+        font.pixelSize: Appearance.font.pixelSize.normal
+        color: Appearance.colors.colSubtext
+        horizontalAlignment: Text.AlignHCenter
+    }
+
     Row { // Keybind columns
         id: row
         spacing: root.spacing
+        visible: keybinds?.children && keybinds.children.length > 0
         
         Repeater {
-            model: keybinds.children
+            model: keybinds?.children || []
             
             delegate: Column { // Keybind sections
                 spacing: root.spacing
