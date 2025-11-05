@@ -24,6 +24,7 @@ Item {
     property bool showBluetoothDialog: false
     property bool showAudioOutputDialog: false
     property bool showAudioInputDialog: false
+    property bool showHiddenNetworkDialog: false
     property bool editMode: false
 
     Connections {
@@ -32,6 +33,7 @@ Item {
             if (!GlobalStates.sidebarRightOpen) {
                 root.showWifiDialog = false;
                 root.showBluetoothDialog = false;
+                root.showHiddenNetworkDialog = false;
                 root.showAudioOutputDialog = false;
                 root.showAudioInputDialog = false;
             }
@@ -117,6 +119,19 @@ Item {
             Network.enableWifi();
             Network.rescanWifi();
         }
+
+        Connections {
+            target: wifiDialogLoader.item
+            function onOpenHiddenNetworkDialog() {
+                root.showHiddenNetworkDialog = true;
+            }
+        }
+    }
+
+    ToggleDialog {
+        id: hiddenNetworkDialogLoader
+        shownPropertyString: "showHiddenNetworkDialog"
+        dialog: HiddenNetworkDialog {}
     }
 
     ToggleDialog {

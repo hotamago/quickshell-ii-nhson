@@ -10,6 +10,8 @@ import Quickshell
 WindowDialog {
     id: root
 
+    signal openHiddenNetworkDialog()
+
     WindowDialogTitle {
         text: Translation.tr("Connect to Wi-Fi")
     }
@@ -36,70 +38,33 @@ WindowDialog {
         spacing: 0
 
         model: ScriptModel {
-            values: [...Network.wifiNetworks].sort((a, b) => {
-                if (a.active && !b.active)
-                    return -1;
-                if (!a.active && b.active)
-                    return 1;
-                return b.strength - a.strength;
-            })
+            values: [
+                { type: "hiddenNetwork" },
+                ...[...Network.wifiNetworks].sort((a, b) => {
+                    if (a.active && !b.active)
+                        return -1;
+                    if (!a.active && b.active)
+                        return 1;
+                    return b.strength - a.strength;
+                })
+            ]
         }
-        delegate: WifiNetworkItem {
-            required property WifiAccessPoint modelData
-            wifiNetwork: modelData
-            anchors {
-                left: parent?.left
-                right: parent?.right
-            }
-        }
-    }
-    WindowDialogSeparator {}
+        delegate: Item {
+            required property var modelData
+            width: parent?.width
+            implicitHeight: modelData.type === "hiddenNetwork" ? hiddenItem.implicitHeight : wifiItem.implicitHeight
 
-    // Hidden network section
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 12
-
-        StyledText {
-            Layout.fillWidth: true
-            text: Translation.tr("Hidden Network")
-            font.pixelSize: Appearance.font.pixelSize.medium
-            font.weight: Font.Medium
-            color: Appearance.colors.colOnSurfaceVariant
-            Layout.topMargin: 4
-        }
-
-        MaterialTextField {
-            id: hiddenNetworkField
-            Layout.fillWidth: true
-            Layout.preferredHeight: 48
-            placeholderText: Translation.tr("Network name (SSID)")
-            onAccepted: hiddenPasswordField.forceActiveFocus()
-        }
-
-        MaterialTextField {
-            id: hiddenPasswordField
-            Layout.fillWidth: true
-            Layout.preferredHeight: 48
-            placeholderText: Translation.tr("Password (optional)")
-            echoMode: TextInput.Password
-            inputMethodHints: Qt.ImhSensitiveData
-            onAccepted: connectToHiddenNetwork()
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-            Layout.topMargin: 4
-
-            Item {
-                Layout.fillWidth: true
+            HiddenNetworkItem {
+                id: hiddenItem
+                visible: modelData.type === "hiddenNetwork"
+                anchors.fill: parent
             }
 
-            DialogButton {
-                buttonText: Translation.tr("Connect")
-                enabled: hiddenNetworkField.text.length > 0
-                onClicked: connectToHiddenNetwork()
+            WifiNetworkItem {
+                id: wifiItem
+                visible: modelData.type !== "hiddenNetwork"
+                wifiNetwork: modelData
+                anchors.fill: parent
             }
         }
     }
@@ -124,17 +89,4 @@ WindowDialog {
         }
     }
 
-    function connectToHiddenNetwork() {
-        if (hiddenNetworkField.text.length === 0) return;
-
-        const ssid = hiddenNetworkField.text.trim();
-        const password = hiddenPasswordField.text;
-
-        // Use the dedicated hidden network connection function
-        Network.connectToHiddenWifiNetwork(ssid, password);
-
-        // Clear the fields
-        hiddenNetworkField.text = "";
-        hiddenPasswordField.text = "";
-    }
 }
