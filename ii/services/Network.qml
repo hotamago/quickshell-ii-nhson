@@ -6,6 +6,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs.modules.common
 import "./network"
 
 /**
@@ -20,6 +21,7 @@ Singleton {
     property bool wifiEnabled: false
     property bool wifiScanning: false
     property bool wifiConnecting: connectProc.running
+    property bool hiddenWifiConnecting: connectHiddenProc.running
     property WifiAccessPoint wifiConnectTarget
     readonly property list<WifiAccessPoint> wifiNetworks: []
     readonly property WifiAccessPoint active: wifiNetworks.find(n => n.active) ?? null
@@ -78,6 +80,9 @@ Singleton {
             security: password.length > 0 ? "WPA2" : "",
             askingPassword: false
         };
+
+        // Store SSID for notification later
+        connectHiddenProc.lastSsid = ssid;
 
         if (password.length > 0) {
             // For hidden networks with password, we need to create the connection with password
@@ -165,6 +170,8 @@ Singleton {
 
     Process {
         id: connectHiddenProc
+        property string lastSsid: ""
+        property int exitCodeCache: -1
         environment: ({
             LANG: "C",
             LC_ALL: "C"
@@ -184,6 +191,36 @@ Singleton {
             }
         }
         onExited: (exitCode, exitStatus) => {
+            // Cache the exit code to use it after notifications
+            connectHiddenProc.exitCodeCache = exitCode;
+            const ssid = connectHiddenProc.lastSsid;
+            
+            console.log("[Network] Hidden network connection attempt finished. SSID:", ssid, "Exit code:", exitCode);
+            
+            if (exitCode === 0) {
+                // Success - send success notification
+                console.log("[Network] Connection successful, sending notification");
+                Quickshell.execDetached([
+                    "notify-send",
+                    "Connected to Network",
+                    "Successfully connected to " + ssid,
+                    "-u", "normal",
+                    "-a", "Network Manager",
+                    "-i", "network-wireless-signal-excellent-symbolic"
+                ]);
+            } else {
+                // Error - send error notification
+                console.log("[Network] Connection failed, sending error notification");
+                Quickshell.execDetached([
+                    "notify-send",
+                    "Connection Failed",
+                    "Failed to connect to " + ssid,
+                    "-u", "critical",
+                    "-a", "Network Manager",
+                    "-i", "network-wireless-offline-symbolic"
+                ]);
+            }
+            
             root.wifiConnectTarget = null
             getNetworks.running = true
         }

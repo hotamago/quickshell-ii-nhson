@@ -16,8 +16,8 @@ Item {
 
     Timer {
         id: secondTimer
-        interval: 1000
-        running: root.showSeconds
+        interval: root.showSeconds ? 1000 : 60000
+        running: true
         repeat: true
         onTriggered: timeText.updateTime()
     }
@@ -39,9 +39,7 @@ Item {
             }
 
             Component.onCompleted: {
-                if (root.showSeconds) {
-                    updateTime()
-                }
+                updateTime()
             }
         }
 
