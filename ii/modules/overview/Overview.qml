@@ -195,7 +195,7 @@ Scope {
                     SearchWidget {
                         id: searchWidget
                         Layout.alignment: Qt.AlignHCenter
-                        visible: !appDrawer.expanded && (root.searchingText == "")
+                        visible: !appDrawer.expanded
                         Layout.maximumHeight: appDrawer.expanded ? 0 : implicitHeight
                         opacity: appDrawer.expanded ? 0 : 1
                         Behavior on opacity {
@@ -245,6 +245,23 @@ Scope {
                         Layout.fillWidth: appDrawer.expanded
                         Layout.preferredWidth: appDrawer.expanded ? flickable.width - 40 : Math.min(1200, flickable.width - 40)
                         visible: (root.searchingText == "")
+                        // But hide it when searching and not expanded (search results take priority)
+                        opacity: (root.searchingText != "" && !appDrawer.expanded) ? 0 : 1
+                        Layout.maximumHeight: (root.searchingText != "" && !appDrawer.expanded) ? 0 : implicitHeight
+                        
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Appearance.animation.elementMove.duration
+                                easing.type: Appearance.animation.elementMove.type
+                            }
+                        }
+                        Behavior on Layout.maximumHeight {
+                            NumberAnimation {
+                                duration: Appearance.animation.elementMove.duration
+                                easing.type: Appearance.animation.elementMove.type
+                            }
+                        }
+                        
                         availableHeight: flickable.height
                         availableWidth: flickable.width - 40
                     }
