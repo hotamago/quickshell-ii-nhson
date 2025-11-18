@@ -8,6 +8,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
+import Quickshell.Io
 
 Item {
     id: root
@@ -38,6 +39,15 @@ Item {
     }
     property real iconSize: 50
     property real spacing: 30
+    
+    // Context menu state
+    property var contextMenuApp: null
+    property bool contextMenuVisible: false
+    property point contextMenuPosition: Qt.point(0, 0)
+    
+    // Properties dialog state
+    property bool propertiesDialogVisible: false
+    property var propertiesDialogApp: null
     
     implicitHeight: root.expanded ? root.expandedHeight : root.collapsedHeight
     
@@ -71,6 +81,51 @@ Item {
         }
         
         return apps;
+    }
+    
+    // Get executable path from an app
+    function getExecutablePath(app) {
+        if (!app) return "";
+        
+        // Try to extract executable from the exec command
+        // Desktop entries often have exec like "app-name %U" or "/path/to/app"
+        const exec = app.exec || "";
+        const parts = exec.split(" ");
+        return parts[0] || "";
+    }
+    
+    // Get full path using 'which' command
+    function copyAppPath(app) {
+        if (!app) return;
+        
+        const execName = getExecutablePath(app);
+        if (!execName) {
+            Quickshell.clipboardText = Translation.tr("Unknown executable");
+            return;
+        }
+        
+        // Use which to find the full path
+        pathFinderProcess.app = app;
+        pathFinderProcess.execName = execName;
+        pathFinderProcess.running = true;
+    }
+    
+    // Process to find executable path
+    Process {
+        id: pathFinderProcess
+        property var app: null
+        property string execName: ""
+        
+        command: ["which", execName]
+        
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0 && stdout.length > 0) {
+                Quickshell.clipboardText = stdout.trim();
+            } else {
+                // Fallback to just the exec name
+                Quickshell.clipboardText = execName;
+            }
+        }
     }
     
     StyledRectangularShadow {
@@ -251,6 +306,15 @@ Item {
                             modelData.execute()
                         }
                         
+                        altAction: (event) => {
+                            // Right-click to show context menu
+                            const globalPos = appButton.mapToItem(root, event.x, event.y);
+                            root.contextMenuPosition = Qt.point(globalPos.x, globalPos.y);
+                            root.contextMenuApp = appButton.modelData;
+                            root.contextMenuVisible = true;
+                            event.accepted = true;
+                        }
+                        
                         Keys.onPressed: (event) => {
                             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 appButton.keyboardDown = true
@@ -296,6 +360,298 @@ Item {
                     }
                 }
             }
+        }
+    }
+    
+    // Context Menu
+    Loader {
+        id: contextMenuLoader
+        active: root.contextMenuVisible
+        anchors.fill: parent
+        
+        sourceComponent: Item {
+            anchors.fill: parent
+            
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    root.contextMenuVisible = false;
+                }
+            }
+            
+            StyledRectangularShadow {
+                target: contextMenuRect
+            }
+            
+            Rectangle {
+                id: contextMenuRect
+                x: Math.min(root.contextMenuPosition.x, parent.width - width - 10)
+                y: Math.min(root.contextMenuPosition.y, parent.height - height - 10)
+                width: 200
+                height: contextMenuColumn.implicitHeight + 16
+                radius: Appearance.rounding.normal
+                color: Appearance.colors.colLayer1
+                border.width: 1
+                border.color: Appearance.colors.colLayer0Border
+                
+                ColumnLayout {
+                    id: contextMenuColumn
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    spacing: 4
+                    
+                    RippleButton {
+                        Layout.fillWidth: true
+                        implicitHeight: 36
+                        buttonRadius: Appearance.rounding.small
+                        colBackground: ColorUtils.transparentize(Appearance.colors.colLayer0)
+                        colBackgroundHover: Appearance.colors.colLayer2
+                        colRipple: Appearance.colors.colLayer2Active
+                        
+                        onClicked: {
+                            root.copyAppPath(root.contextMenuApp);
+                            root.contextMenuVisible = false;
+                        }
+                        
+                        contentItem: RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            spacing: 12
+                            
+                            MaterialSymbol {
+                                text: "content_copy"
+                                iconSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colOnLayer0
+                            }
+                            
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: Translation.tr("Copy path")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colOnLayer0
+                            }
+                        }
+                    }
+                    
+                    RippleButton {
+                        Layout.fillWidth: true
+                        implicitHeight: 36
+                        buttonRadius: Appearance.rounding.small
+                        colBackground: ColorUtils.transparentize(Appearance.colors.colLayer0)
+                        colBackgroundHover: Appearance.colors.colLayer2
+                        colRipple: Appearance.colors.colLayer2Active
+                        
+                        onClicked: {
+                            root.propertiesDialogApp = root.contextMenuApp;
+                            root.propertiesDialogVisible = true;
+                            root.contextMenuVisible = false;
+                        }
+                        
+                        contentItem: RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            spacing: 12
+                            
+                            MaterialSymbol {
+                                text: "info"
+                                iconSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colOnLayer0
+                            }
+                            
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: Translation.tr("Properties")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colOnLayer0
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Properties Dialog
+    Loader {
+        id: propertiesDialogLoader
+        active: root.propertiesDialogVisible
+        anchors.fill: parent
+        
+        sourceComponent: WindowDialog {
+            id: propertiesDialog
+            show: root.propertiesDialogVisible
+            backgroundHeight: 500
+            
+            onDismiss: {
+                root.propertiesDialogVisible = false;
+            }
+            
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                
+                WindowDialogTitle {
+                    Layout.fillWidth: true
+                    text: Translation.tr("Application Properties")
+                }
+                
+                RippleButton {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    buttonRadius: Appearance.rounding.full
+                    colBackground: ColorUtils.transparentize(Appearance.colors.colLayer0)
+                    colBackgroundHover: Appearance.colors.colLayer2
+                    colRipple: Appearance.colors.colLayer2Active
+                    
+                    onClicked: propertiesDialog.dismiss()
+                    
+                    contentItem: MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "close"
+                        iconSize: Appearance.font.pixelSize.normal
+                        color: Appearance.colors.colOnLayer0
+                    }
+                }
+            }
+            
+            WindowDialogSeparator {
+                Layout.fillWidth: true
+            }
+            
+            StyledFlickable {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                contentHeight: propertiesColumn.implicitHeight
+                clip: true
+                
+                ColumnLayout {
+                    id: propertiesColumn
+                    width: parent.width
+                    spacing: 16
+                    
+                    // App Icon and Name
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 12
+                        
+                        IconImage {
+                            Layout.alignment: Qt.AlignHCenter
+                            source: root.propertiesDialogApp ? Quickshell.iconPath(root.propertiesDialogApp.icon, "image-missing") : ""
+                            implicitSize: 64
+                        }
+                        
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: root.propertiesDialogApp ? root.propertiesDialogApp.name : ""
+                            font.pixelSize: Appearance.font.pixelSize.larger
+                            font.weight: Font.Medium
+                            color: Appearance.colors.colOnLayer0
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                    }
+                    
+                    WindowDialogSeparator {
+                        Layout.fillWidth: true
+                    }
+                    
+                    // Properties List
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+                        
+                        // Description
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            visible: root.propertiesDialogApp && root.propertiesDialogApp.description
+                            label: Translation.tr("Description")
+                            value: root.propertiesDialogApp ? (root.propertiesDialogApp.description || Translation.tr("N/A")) : ""
+                        }
+                        
+                        // Executable
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            label: Translation.tr("Executable")
+                            value: root.propertiesDialogApp ? (root.getExecutablePath(root.propertiesDialogApp) || Translation.tr("Unknown")) : ""
+                        }
+                        
+                        // Full Command
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            visible: root.propertiesDialogApp && root.propertiesDialogApp.exec
+                            label: Translation.tr("Command")
+                            value: root.propertiesDialogApp ? (root.propertiesDialogApp.exec || Translation.tr("N/A")) : ""
+                        }
+                        
+                        // Icon Name
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            label: Translation.tr("Icon")
+                            value: root.propertiesDialogApp ? root.propertiesDialogApp.icon : ""
+                        }
+                        
+                        // Desktop File
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            visible: root.propertiesDialogApp && root.propertiesDialogApp.desktopFile
+                            label: Translation.tr("Desktop File")
+                            value: root.propertiesDialogApp ? (root.propertiesDialogApp.desktopFile || Translation.tr("N/A")) : ""
+                        }
+                        
+                        // Categories
+                        PropertyRow {
+                            Layout.fillWidth: true
+                            visible: root.propertiesDialogApp && root.propertiesDialogApp.categories
+                            label: Translation.tr("Categories")
+                            value: root.propertiesDialogApp && root.propertiesDialogApp.categories ? 
+                                (Array.isArray(root.propertiesDialogApp.categories) ? 
+                                    root.propertiesDialogApp.categories.join(", ") : 
+                                    root.propertiesDialogApp.categories.toString()) : 
+                                Translation.tr("N/A")
+                        }
+                    }
+                }
+            }
+            
+            WindowDialogSeparator {
+                Layout.fillWidth: true
+            }
+            
+            WindowDialogButtonRow {
+                Layout.fillWidth: true
+                
+                Item { Layout.fillWidth: true }
+                
+                DialogButton {
+                    buttonText: Translation.tr("Close")
+                    onClicked: propertiesDialog.dismiss()
+                }
+            }
+        }
+    }
+    
+    // Helper component for property rows
+    component PropertyRow: ColumnLayout {
+        id: propertyRow
+        property string label: ""
+        property string value: ""
+        spacing: 4
+        
+        StyledText {
+            text: propertyRow.label
+            font.pixelSize: Appearance.font.pixelSize.smaller
+            font.weight: Font.Medium
+            color: Appearance.colors.colSubtext
+        }
+        
+        StyledText {
+            Layout.fillWidth: true
+            text: propertyRow.value
+            font.pixelSize: Appearance.font.pixelSize.small
+            color: Appearance.colors.colOnLayer0
+            wrapMode: Text.WordWrap
         }
     }
 }
