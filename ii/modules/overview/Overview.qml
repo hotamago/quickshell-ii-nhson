@@ -186,8 +186,9 @@ Scope {
                         
                         Behavior on Layout.preferredHeight {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementResize.duration
+                                easing.type: Appearance.animation.elementResize.type
+                                easing.bezierCurve: Appearance.animation.elementResize.bezierCurve
                             }
                         }
                     }
@@ -200,14 +201,16 @@ Scope {
                         opacity: appDrawer.expanded ? 0 : 1
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementMoveFast.duration
+                                easing.type: Appearance.animation.elementMoveFast.type
+                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
                             }
                         }
                         Behavior on Layout.maximumHeight {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementResize.duration
+                                easing.type: Appearance.animation.elementResize.type
+                                easing.bezierCurve: Appearance.animation.elementResize.bezierCurve
                             }
                         }
                         onSearchingTextChanged: text => {
@@ -223,14 +226,16 @@ Scope {
                         opacity: appDrawer.expanded ? 0 : 1
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementMoveFast.duration
+                                easing.type: Appearance.animation.elementMoveFast.type
+                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
                             }
                         }
                         Behavior on Layout.maximumHeight {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementResize.duration
+                                easing.type: Appearance.animation.elementResize.type
+                                easing.bezierCurve: Appearance.animation.elementResize.bezierCurve
                             }
                         }
                         sourceComponent: OverviewWidget {
@@ -251,14 +256,16 @@ Scope {
                         
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementMoveFast.duration
+                                easing.type: Appearance.animation.elementMoveFast.type
+                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
                             }
                         }
                         Behavior on Layout.maximumHeight {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMove.duration
-                                easing.type: Appearance.animation.elementMove.type
+                                duration: Appearance.animation.elementResize.duration
+                                easing.type: Appearance.animation.elementResize.type
+                                easing.bezierCurve: Appearance.animation.elementResize.bezierCurve
                             }
                         }
                         
