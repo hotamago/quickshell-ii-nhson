@@ -205,7 +205,6 @@ Item {
                 Layout.fillHeight: true
                 Layout.minimumHeight: root.expanded ? 100 : 40
                 clip: true
-                ScrollBar.vertical: StyledScrollBar {}
                 
                 GridView {
                     id: appGrid
