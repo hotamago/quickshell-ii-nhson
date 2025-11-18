@@ -103,8 +103,70 @@ Scope {
                 contentHeight: columnLayout.implicitHeight
                 clip: true
                 visible: GlobalStates.overviewOpen
+                boundsBehavior: Flickable.DragAndOvershootBounds
+                
+                property real lastContentY: 0
+                property bool isScrollingUp: false
+                property int scrollUpAttempts: 0
+                
+                // Detect scroll attempts when at the top
+                onMovementStarted: {
+                    scrollUpAttempts = 0;
+                }
+                
+                onMovementEnded: {
+                    // If we tried to scroll up while at/near the top, collapse
+                    if (appDrawer.expanded && scrollUpAttempts > 0 && contentY < 50) {
+                        appDrawer.expanded = false;
+                        appDrawer.searchText = "";
+                        Qt.callLater(() => {
+                            flickable.contentY = 0;
+                        });
+                    }
+                    scrollUpAttempts = 0;
+                    isScrollingUp = false;
+                }
+                
+                // Track wheel events at the top to collapse
+                WheelHandler {
+                    id: wheelHandler
+                    target: null
+                    onWheel: (event) => {
+                        // If expanded, at/near top, and scrolling up, collapse
+                        if (appDrawer.expanded && flickable.contentY < 50 && event.angleDelta.y > 0) {
+                            appDrawer.expanded = false;
+                            appDrawer.searchText = "";
+                            Qt.callLater(() => {
+                                flickable.contentY = 0;
+                            });
+                        }
+                    }
+                }
                 
                 onContentYChanged: {
+                    // Track scroll direction
+                    if (contentY < lastContentY) {
+                        isScrollingUp = true;
+                        if (appDrawer.expanded && contentY < 50) {
+                            scrollUpAttempts++;
+                        }
+                    } else {
+                        isScrollingUp = false;
+                    }
+                    
+                    // When expanded and user scrolls/overshoots past the top, collapse back to initial state
+                    if (appDrawer.expanded && contentY < -10) {
+                        appDrawer.expanded = false;
+                        appDrawer.searchText = "";
+                        Qt.callLater(() => {
+                            flickable.contentY = 0;
+                        });
+                        lastContentY = contentY;
+                        return;
+                    }
+                    
+                    lastContentY = contentY;
+                    
                     // Expand drawer when user scrolls down significantly
                     // Calculate the height of content above the drawer (when not expanded)
                     const searchWidgetHeight = appDrawer.expanded ? 0 : (searchWidget.implicitHeight || 0);
