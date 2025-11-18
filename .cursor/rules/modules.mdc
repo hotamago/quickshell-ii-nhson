@@ -1,0 +1,76 @@
+---
+globs: ii/modules/**/*.qml
+description: Rules for module files that provide UI components
+---
+# Module Files
+
+Modules are UI components organized by feature. Each module directory contains related QML files.
+
+## Module Structure
+
+- **Main module file**: Usually named after the module (e.g., `Bar.qml`, `Dock.qml`, `Overview.qml`)
+- **Supporting files**: Additional components in the same directory
+- **Subdirectories**: For complex modules with multiple components
+
+## Common Module Patterns
+
+### Multi-Monitor Support
+
+Modules that need to appear on each monitor should use `Variants`:
+
+```qml
+Scope {
+    id: root
+    
+    Variants {
+        model: Quickshell.screens
+        PanelWindow {
+            required property var modelData
+            screen: modelData
+            // Implementation
+        }
+    }
+}
+```
+
+### Panel Windows
+
+For overlay windows, use `PanelWindow` with `WlrLayershell`:
+
+```qml
+PanelWindow {
+    WlrLayershell.namespace: "quickshell:module-name"
+    WlrLayershell.layer: WlrLayer.Overlay
+    color: "transparent"
+    
+    anchors {
+        top: true
+        bottom: true
+        left: true
+        right: true
+    }
+}
+```
+
+### Global State Integration
+
+Modules should integrate with `GlobalStates` for visibility and state:
+
+```qml
+visible: GlobalStates.moduleOpen
+```
+
+### Configuration Access
+
+Always check `Config.ready` before accessing `Config.options`:
+
+```qml
+property bool enabled: Config.ready && (Config.options?.module?.enable ?? true)
+```
+
+## Module Examples
+
+- [Bar.qml](mdc:ii/modules/bar/Bar.qml) - Top/bottom bar
+- [Dock.qml](mdc:ii/modules/dock/Dock.qml) - Application dock
+- [Overview.qml](mdc:ii/modules/overview/Overview.qml) - Workspace overview
+- [Background.qml](mdc:ii/modules/background/Background.qml) - Background and wallpaper

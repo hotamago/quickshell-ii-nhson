@@ -1,0 +1,82 @@
+---
+globs: *.qml
+---
+# QML File Conventions
+
+## Import Order
+
+Follow this import order pattern:
+
+1. Quickshell-specific imports (qs namespace)
+   ```qml
+   import qs
+   import qs.services
+   import qs.modules.common
+   import qs.modules.common.widgets
+   ```
+
+2. Qt Quick imports
+   ```qml
+   import QtQuick
+   import QtQuick.Controls
+   import QtQuick.Layouts
+   ```
+
+3. Quickshell framework imports
+   ```qml
+   import Quickshell
+   import Quickshell.Io
+   import Quickshell.Wayland
+   import Quickshell.Hyprland
+   ```
+
+4. Relative imports for local modules
+   ```qml
+   import "./subdirectory/"
+   ```
+
+## Component Structure
+
+- Use PascalCase for component names (e.g., `PanelWindow`, `SearchWidget`)
+- Use `id: root` for the root component
+- Use `required property` for required properties
+- Use `readonly property` for computed/derived properties
+- Use `pragma Singleton` and `pragma ComponentBehavior: Bound` for singletons
+
+## Common Patterns
+
+- **Multi-monitor support**: Use `Variants { model: Quickshell.screens }` with `required property var modelData`
+- **Panel windows**: Use `PanelWindow` with `WlrLayershell` properties
+- **State management**: Access `GlobalStates` for global UI state
+- **Configuration**: Access `Config.options` (always check `Config.ready` first)
+- **Styling**: Use `Appearance.colors`, `Appearance.sizes`, `Appearance.font`, `Appearance.rounding`
+- **Animations**: Use `Appearance.animation.*.numberAnimation.createObject(this)`
+- **Translations**: Use `Translation.tr("key")` for user-facing strings
+
+## Example Module Structure
+
+```qml
+import qs
+import qs.services
+import qs.modules.common
+import qs.modules.common.widgets
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Hyprland
+
+Scope {
+    id: root
+    
+    Variants {
+        model: Quickshell.screens
+        PanelWindow {
+            required property var modelData
+            screen: modelData
+            visible: GlobalStates.someState
+            
+            // Component implementation
+        }
+    }
+}
+```

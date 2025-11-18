@@ -1,0 +1,45 @@
+---
+alwaysApply: true
+---
+# Quickshell Configuration Project Structure
+
+This is a Quickshell shell configuration project written in QML. The main entry point is [shell.qml](mdc:ii/shell.qml), which loads all modules conditionally.
+
+## Project Organization
+
+- **Main Files**:
+  - [shell.qml](mdc:ii/shell.qml) - Main shell entry point, loads all modules
+  - [settings.qml](mdc:ii/settings.qml) - Settings application
+  - [GlobalStates.qml](mdc:ii/GlobalStates.qml) - Global state singleton
+  - [Config.qml](mdc:ii/modules/common/Config.qml) - Configuration singleton
+
+- **Modules** (`ii/modules/`): UI components organized by feature
+  - Each module directory contains related QML files
+  - Modules are loaded conditionally in [shell.qml](mdc:ii/shell.qml)
+  - Common modules: `bar/`, `dock/`, `overview/`, `sidebarLeft/`, `sidebarRight/`, etc.
+
+- **Services** (`ii/services/`): Backend functionality singletons
+  - Services provide data and functionality to modules
+  - Examples: `Audio.qml`, `Battery.qml`, `HyprlandData.qml`, `Notifications.qml`
+
+- **Common** (`ii/modules/common/`): Shared components and utilities
+  - [Appearance.qml](mdc:ii/modules/common/Appearance.qml) - Theming and styling
+  - [Config.qml](mdc:ii/modules/common/Config.qml) - Configuration management
+  - `widgets/` - Reusable UI components
+  - `functions/` - Utility functions
+
+- **Assets** (`ii/assets/`): Icons, images, and other static resources
+
+- **Scripts** (`ii/scripts/`): Shell scripts and Python utilities
+
+- **Translations** (`ii/translations/`): i18n JSON files
+
+## Key Patterns
+
+- Use `Scope` for module-level components
+- Use `Variants` with `model: Quickshell.screens` for multi-monitor support
+- Use `PanelWindow` for window components
+- Access global state via `GlobalStates` singleton
+- Access configuration via `Config.options` (check `Config.ready` first)
+- Use `Appearance` for colors, sizes, fonts, and animations
+- Use `Translation.tr()` for internationalized strings

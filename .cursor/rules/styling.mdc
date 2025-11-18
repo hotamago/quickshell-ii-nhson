@@ -1,0 +1,77 @@
+---
+globs: *.qml
+description: Styling and appearance guidelines using Appearance singleton
+---
+# Styling Guidelines
+
+Use the [Appearance](mdc:ii/modules/common/Appearance.qml) singleton for all styling. Never hardcode colors, sizes, or fonts.
+
+## Colors
+
+Access colors via `Appearance.colors`:
+- `Appearance.colors.colLayer0` - Background layer 0
+- `Appearance.colors.colLayer1` - Background layer 1
+- `Appearance.colors.colOnLayer0` - Text on layer 0
+- `Appearance.colors.colSubtext` - Secondary text
+- `Appearance.m3colors.*` - Material Design 3 colors
+
+## Sizes
+
+Access sizes via `Appearance.sizes`:
+- `Appearance.sizes.sidebarWidth` - Sidebar width
+- `Appearance.sizes.elevationMargin` - Elevation margin
+- `Appearance.sizes.hyprlandGapsOut` - Hyprland gaps
+
+## Fonts
+
+Access fonts via `Appearance.font`:
+- `Appearance.font.pixelSize.smaller`
+- `Appearance.font.pixelSize.small`
+- `Appearance.font.pixelSize.normal`
+- `Appearance.font.pixelSize.larger`
+
+## Rounding
+
+Access border radius via `Appearance.rounding`:
+- `Appearance.rounding.small`
+- `Appearance.rounding.normal`
+- `Appearance.rounding.large`
+
+## Animations
+
+Use `Appearance.animation` for consistent animations:
+
+```qml
+Behavior on property {
+    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+}
+```
+
+## Shadows
+
+Use `StyledRectangularShadow` component for shadows:
+
+```qml
+StyledRectangularShadow {
+    target: targetItem
+}
+```
+
+## Material Icons
+
+Use `MaterialSymbol` component for Material Design icons:
+
+```qml
+MaterialSymbol {
+    text: "icon_name"
+    color: Appearance.colors.colOnLayer0
+    iconSize: Appearance.font.pixelSize.larger
+}
+```
+
+## Styled Components
+
+Use styled components from `qs.modules.common.widgets`:
+- `StyledText` - Text with proper styling
+- `StyledRectangularShadow` - Shadow component
+- `MaterialSymbol` - Material Design icons

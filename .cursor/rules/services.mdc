@@ -1,0 +1,57 @@
+---
+globs: ii/services/*.qml
+description: Rules for service files that provide backend functionality
+---
+# Service Files
+
+Services are singleton components that provide data and functionality to modules.
+
+## Service Conventions
+
+- **Always use singletons**: Include `pragma Singleton` and `pragma ComponentBehavior: Bound`
+- **Use Singleton component**: Wrap in `Singleton { id: root }`
+- **Common imports**: 
+  ```qml
+  import QtQuick
+  import Quickshell
+  import Quickshell.Io  // For file operations
+  ```
+
+## Service Patterns
+
+- Expose data via properties
+- Use `Timer` for periodic updates
+- Use `Process` or `Quickshell.exec()` for external commands
+- Use `FileView` for file watching
+- Use `JsonAdapter` for JSON configuration
+- Emit signals for state changes
+- Use `Component.onCompleted` for initialization
+
+## Example Service Structure
+
+```qml
+pragma Singleton
+pragma ComponentBehavior: Bound
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+Singleton {
+    id: root
+    property bool ready: false
+    property var data: null
+    
+    Component.onCompleted: {
+        // Initialize service
+        root.ready = true
+    }
+}
+```
+
+## Common Services Reference
+
+- [Audio.qml](mdc:ii/services/Audio.qml) - Audio control
+- [Battery.qml](mdc:ii/services/Battery.qml) - Battery status
+- [HyprlandData.qml](mdc:ii/services/HyprlandData.qml) - Hyprland window manager data
+- [Notifications.qml](mdc:ii/services/Notifications.qml) - Notification handling
+- [Config.qml](mdc:ii/modules/common/Config.qml) - Configuration management
