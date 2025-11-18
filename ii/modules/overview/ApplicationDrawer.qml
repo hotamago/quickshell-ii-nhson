@@ -16,7 +16,7 @@ Item {
     property string sortMode: "name" // "name", "recent"
     property string filterCategory: "all" // "all", "favorites"
     
-    property real collapsedHeight: 200 // Better initial height
+    property real collapsedHeight: 400 // Better initial height
     property real availableHeight: 0
     property real availableWidth: 0
     property real expandedHeight: {
@@ -36,8 +36,8 @@ Item {
         }
         return Math.max(6, Math.floor((width - 60) / 90));
     }
-    property real iconSize: 48
-    property real spacing: 15
+    property real iconSize: 50
+    property real spacing: 30
     
     implicitHeight: root.expanded ? root.expandedHeight : root.collapsedHeight
     
@@ -211,7 +211,7 @@ Item {
                     id: appGrid
                     anchors.fill: parent
                     cellWidth: Math.max(80, (parent.width - (root.columns - 1) * root.spacing - 30) / root.columns)
-                    cellHeight: cellWidth * 1.15
+                    cellHeight: cellWidth * 1.3
                     interactive: root.expanded || contentHeight > height
                     boundsBehavior: Flickable.StopAtBounds
                     
